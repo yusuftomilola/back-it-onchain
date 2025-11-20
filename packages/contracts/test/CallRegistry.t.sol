@@ -32,37 +32,73 @@ contract CallRegistryTest is Test {
     }
 
     function testCreateCall() public {
-        vm.prank(user1);
+        vm.startPrank(user1);
+        token.approve(address(registry), 100 ether); // Changed to `token` from `mockToken` to match declaration
+        
         registry.createCall(
-            address(token),
-            100 * 10**18,
+            address(token), // Changed to `token` from `mockToken` to match declaration
+            10 ether,
             block.timestamp + 1 days,
-            address(0x123),
-            bytes32("pair"),
-            "ipfs_cid"
+            address(0),
+            bytes32(0),
+            "QmTest"
         );
 
-        (address creator, address stakeToken, uint256 totalStake,,,,,,,,) = registry.calls(0);
+        (
+            address creator,
+            address stakeToken,
+            uint256 totalStakeYes,
+            uint256 totalStakeNo,
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+        ) = registry.calls(0);
+
         assertEq(creator, user1);
-        assertEq(stakeToken, address(token));
-        assertEq(totalStake, 100 * 10**18);
+        assertEq(stakeToken, address(token)); // Changed to `token` from `mockToken` to match declaration
+        assertEq(totalStakeYes, 10 ether);
+        assertEq(totalStakeNo, 0);
+        
+        // Check user stake
+        assertEq(registry.userStakes(0, user1, true), 10 ether);
+        vm.stopPrank();
     }
 
     function testStakeOnCall() public {
-        vm.prank(user1);
+        // Create call first
+        vm.startPrank(user1);
+        token.approve(address(registry), 100 ether); // Changed to `token` from `mockToken` to match declaration
         registry.createCall(
-            address(token),
-            100 * 10**18,
+            address(token), // Changed to `token` from `mockToken` to match declaration
+            10 ether,
             block.timestamp + 1 days,
-            address(0x123),
-            bytes32("pair"),
-            "ipfs_cid"
+            address(0),
+            bytes32(0),
+            "QmTest"
         );
+        vm.stopPrank();
 
-        vm.prank(user2);
-        registry.stakeOnCall(0, 50 * 10**18);
+        // User 2 stakes on NO (Challenge)
+        vm.startPrank(user2);
+        token.approve(address(registry), 100 ether); // Changed to `token` from `mockToken` to match declaration
+        registry.stakeOnCall(0, 5 ether, false); // false = NO
+        
+        (,, uint256 totalStakeYes, uint256 totalStakeNo,,,,,,,,) = registry.calls(0);
+        assertEq(totalStakeYes, 10 ether);
+        assertEq(totalStakeNo, 5 ether);
+        assertEq(registry.userStakes(0, user2, false), 5 ether);
+        vm.stopPrank();
 
-        (,, uint256 totalStake,,,,,,,,) = registry.calls(0);
-        assertEq(totalStake, 150 * 10**18);
+        // User 1 adds more stake on YES (Back)
+        vm.startPrank(user1);
+        registry.stakeOnCall(0, 2 ether, true); // true = YES
+        (,, totalStakeYes, totalStakeNo,,,,,,,,) = registry.calls(0);
+        assertEq(totalStakeYes, 12 ether);
+        assertEq(registry.userStakes(0, user1, true), 12 ether);
+        vm.stopPrank();
     }
 }

@@ -36,7 +36,7 @@ contract OutcomeManager is EIP712, Ownable {
         require(!settled[callId], "Already settled");
         
         // Verify call exists and ended
-        (,,, , uint256 endTs,,,, bool isSettled,,) = registry.calls(callId);
+        (,,,,, uint256 endTs,,,, bool isSettled,,) = registry.calls(callId);
         require(endTs > 0, "Call not found");
         require(block.timestamp >= endTs, "Call not ended");
         require(!isSettled, "Registry says settled");

@@ -11,7 +11,8 @@ contract CallRegistry is ReentrancyGuard {
     struct Call {
         address creator;
         address stakeToken;
-        uint256 totalStake;
+        uint256 totalStakeYes;
+        uint256 totalStakeNo;
         uint256 startTs;
         uint256 endTs;
         address tokenAddress;
@@ -24,7 +25,8 @@ contract CallRegistry is ReentrancyGuard {
 
     uint256 public nextCallId;
     mapping(uint256 => Call) public calls;
-    mapping(uint256 => mapping(address => uint256)) public userStakes;
+    // callId => user => position (true=YES, false=NO) => amount
+    mapping(uint256 => mapping(address => mapping(bool => uint256))) public userStakes;
 
     event CallCreated(
         uint256 indexed callId,
@@ -41,6 +43,7 @@ contract CallRegistry is ReentrancyGuard {
     event StakeAdded(
         uint256 indexed callId,
         address indexed staker,
+        bool position,
         uint256 amount
     );
 
@@ -61,7 +64,8 @@ contract CallRegistry is ReentrancyGuard {
         calls[callId] = Call({
             creator: msg.sender,
             stakeToken: _stakeToken,
-            totalStake: _stakeAmount,
+            totalStakeYes: _stakeAmount,
+            totalStakeNo: 0,
             startTs: block.timestamp,
             endTs: _endTs,
             tokenAddress: _tokenAddress,
@@ -72,7 +76,8 @@ contract CallRegistry is ReentrancyGuard {
             finalPrice: 0
         });
 
-        userStakes[callId][msg.sender] = _stakeAmount;
+        // Creator always backs "YES" initially
+        userStakes[callId][msg.sender][true] = _stakeAmount;
 
         emit CallCreated(
             callId,
@@ -87,7 +92,7 @@ contract CallRegistry is ReentrancyGuard {
         );
     }
 
-    function stakeOnCall(uint256 _callId, uint256 _amount) external nonReentrant {
+    function stakeOnCall(uint256 _callId, uint256 _amount, bool _position) external nonReentrant {
         Call storage call = calls[_callId];
         require(call.startTs > 0, "Call does not exist");
         require(block.timestamp < call.endTs, "Call ended");
@@ -96,9 +101,14 @@ contract CallRegistry is ReentrancyGuard {
 
         IERC20(call.stakeToken).safeTransferFrom(msg.sender, address(this), _amount);
         
-        call.totalStake += _amount;
-        userStakes[_callId][msg.sender] += _amount;
+        if (_position) {
+            call.totalStakeYes += _amount;
+        } else {
+            call.totalStakeNo += _amount;
+        }
+        
+        userStakes[_callId][msg.sender][_position] += _amount;
 
-        emit StakeAdded(_callId, msg.sender, _amount);
+        emit StakeAdded(_callId, msg.sender, _position, _amount);
     }
 }

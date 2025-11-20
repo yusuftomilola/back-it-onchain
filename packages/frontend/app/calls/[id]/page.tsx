@@ -1,80 +1,204 @@
-'use client';
 
-import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+"use client";
 
-interface Call {
-    id: string;
-    tokenAddress: string;
-    stakeAmount: string;
-    targetPrice: string;
-    endTs: string;
-    creatorWallet: string;
-    status: string;
-}
+import { useParams } from "next/navigation";
+import { AppLayout } from "@/components/AppLayout";
+import { ArrowLeft, TrendingUp, Clock, ShieldCheck, Users, MessageSquare, Share2, Flag } from 'lucide-react';
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { useGlobalState } from "@/components/GlobalState";
+import { useState } from "react";
+import { Loader } from "@/components/ui/Loader";
 
-export default function CallDetail() {
+
+export default function CallDetailPage() {
     const params = useParams();
-    const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
-    const [call, setCall] = useState<Call | null>(null);
+    const id = params?.id as string;
+    const { calls, stakeOnCall, isLoading } = useGlobalState();
+    const [stakingType, setStakingType] = useState<'back' | 'challenge' | null>(null);
 
-    useEffect(() => {
-        const fetchCall = async () => {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            setCall({
-                id: id as string,
-                tokenAddress: '0x420...69',
-                stakeAmount: '100',
-                targetPrice: '2000',
-                endTs: new Date(Date.now() + 86400000).toISOString(),
-                creatorWallet: '0x123...abc',
-                status: 'OPEN',
-            });
-        };
-        if (id) {
-            fetchCall();
-        }
-    }, [id]);
+    const call = calls.find(c => c.id === id);
 
-    if (!id) return <div>Invalid Call ID</div>;
-    if (!call) return <div>Loading...</div>;
-
-    return (
-        <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8">
-                <h1 className="text-3xl font-bold mb-6">Call #{call.id}</h1>
-
-                <div className="grid grid-cols-2 gap-6 mb-8">
-                    <div>
-                        <p className="text-sm text-gray-500">Token</p>
-                        <p className="text-lg font-mono">{call.tokenAddress}</p>
-                    </div>
-                    <div>
-                        <p className="text-sm text-gray-500">Target Price</p>
-                        <p className="text-lg font-bold">${call.targetPrice}</p>
-                    </div>
-                    <div>
-                        <p className="text-sm text-gray-500">Stake</p>
-                        <p className="text-lg">{call.stakeAmount} USDC</p>
-                    </div>
-                    <div>
-                        <p className="text-sm text-gray-500">Ends</p>
-                        <p className="text-lg">{new Date(call.endTs).toLocaleString()}</p>
-                    </div>
+    if (!call) {
+        return (
+            <AppLayout>
+                <div className="min-h-[50vh] flex flex-col items-center justify-center text-muted-foreground">
+                    <h2 className="text-xl font-bold mb-2">Call not found</h2>
+                    <Link href="/feed" className="text-primary hover:underline">Return to Feed</Link>
                 </div>
+            </AppLayout>
+        );
+    }
 
-                <div className="border-t pt-6">
-                    <h2 className="text-xl font-semibold mb-4">Actions</h2>
-                    <div className="flex space-x-4">
-                        <button className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">
-                            Co-Back (Agree)
-                        </button>
-                        <button className="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700">
-                            Counter-Back (Disagree)
-                        </button>
+    const RightSidebar = (
+        <div className="space-y-6">
+            <div className="bg-secondary/20 rounded-xl p-6 border border-border">
+                <h3 className="font-bold text-lg mb-2">Market Stats</h3>
+                <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Total Volume</span>
+                        <span className="font-medium">{call.volume}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Participants</span>
+                        <span className="font-medium">{call.backers}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Liquidity</span>
+                        <span className="font-medium">$5,000</span>
                     </div>
                 </div>
             </div>
+        </div>
+    );
+
+    return (
+        <AppLayout rightSidebar={RightSidebar}>
+            {isLoading && <Loader text="Processing Transaction..." />}
+            {/* Header */}
+            <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border px-4 py-3 flex items-center gap-4">
+                <Link href="/feed" className="p-2 hover:bg-secondary rounded-full transition-colors">
+                    <ArrowLeft className="h-5 w-5" />
+                </Link>
+                <h1 className="text-lg font-bold truncate">Call Details</h1>
+            </header>
+
+            <div className="p-6">
+                {/* Call Header */}
+                <div className="mb-6">
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className={`h-10 w-10 rounded-full ${call.creator.avatar} flex items-center justify-center font-bold text-white text-sm`}>
+                            {call.creator.name.substring(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                            <div className="font-bold">{call.creator.name}</div>
+                            <div className="text-xs text-muted-foreground">{call.creator.handle} • {call.createdAt}</div>
+                        </div>
+                    </div>
+
+                    <h1 className="text-2xl font-bold mb-4 leading-tight">{call.title}</h1>
+
+                    <div className="flex flex-wrap gap-3 mb-6">
+                        <Badge icon={<TrendingUp className="h-4 w-4" />} label={`${call.asset} ➜ ${call.target}`} color="primary" />
+                        <Badge icon={<ShieldCheck className="h-4 w-4" />} label={`Stake: ${call.stake}`} color="accent" />
+                        <Badge icon={<Clock className="h-4 w-4" />} label={`By ${call.deadline}`} color="secondary" />
+                    </div>
+
+                    <div className="bg-secondary/30 rounded-xl p-6 border border-border mb-8">
+                        <h3 className="font-bold mb-2 text-sm uppercase tracking-wider text-muted-foreground">Thesis</h3>
+                        <p className="text-lg leading-relaxed">{call.thesis}</p>
+                    </div>
+
+                    {/* Action Buttons */}
+                    {/* Action Buttons */}
+                    <div className="mb-8">
+                        {stakingType ? (
+                            <div className="bg-card border border-border rounded-xl p-6 animate-in fade-in zoom-in-95">
+                                <h3 className="font-bold text-lg mb-2">
+                                    Confirm {stakingType === 'back' ? 'Backing' : 'Challenge'}
+                                </h3>
+                                <p className="text-muted-foreground text-sm mb-4">
+                                    You are about to stake 100 USDC on this prediction.
+                                </p>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setStakingType(null)}
+                                        className="flex-1 py-3 rounded-xl font-medium hover:bg-secondary transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            await stakeOnCall(id, 100, stakingType);
+                                            setStakingType(null);
+                                        }}
+                                        className={`flex-1 py-3 rounded-xl font-bold text-white transition-colors ${stakingType === 'back' ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'
+                                            }`}
+                                    >
+                                        Confirm Stake
+                                    </button>
+
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 gap-4">
+                                <button
+                                    onClick={() => setStakingType('back')}
+                                    className="py-4 rounded-xl bg-green-500/10 text-green-500 font-bold hover:bg-green-500/20 transition-colors flex flex-col items-center gap-1 border border-green-500/20"
+                                >
+                                    <span>Back this Call</span>
+                                    <span className="text-xs font-normal opacity-80">Agree with prediction</span>
+                                </button>
+                                <button
+                                    onClick={() => setStakingType('challenge')}
+                                    className="py-4 rounded-xl bg-red-500/10 text-red-500 font-bold hover:bg-red-500/20 transition-colors flex flex-col items-center gap-1 border border-red-500/20"
+                                >
+                                    <span>Challenge</span>
+                                    <span className="text-xs font-normal opacity-80">Bet against it</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Interaction Stats */}
+                    <div className="flex items-center justify-between border-y border-border py-4 mb-8">
+                        <div className="flex gap-6">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                <Users className="h-5 w-5" />
+                                <span className="font-medium">{call.backers} Backers</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                <MessageSquare className="h-5 w-5" />
+                                <span className="font-medium">{call.comments} Comments</span>
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <button className="p-2 hover:bg-secondary rounded-full transition-colors text-muted-foreground hover:text-foreground">
+                                <Share2 className="h-5 w-5" />
+                            </button>
+                            <button className="p-2 hover:bg-secondary rounded-full transition-colors text-muted-foreground hover:text-foreground">
+                                <Flag className="h-5 w-5" />
+                            </button>
+                        </div>
+                    </div>
+                    <h3 className="text-xl font-bold mb-2 group-hover:text-red-500 transition-colors">Counter-Back</h3>
+                    <p className="text-muted-foreground mb-4">Think this is wrong? Stake ETH against this prediction to win the creator's stake.</p>
+                    <div
+                        onClick={() => setStakingType('challenge')}
+                        className="w-full py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-center transition-colors cursor-pointer"
+                    >
+                        Back "No"
+                    </div>
+                </div>
+            </div>
+        </AppLayout>
+    );
+}
+
+function StatCard({ icon: Icon, label, value, subValue }: { icon: any, label: string, value: string, subValue: string }) {
+    return (
+        <div className="bg-secondary/50 rounded-xl p-4 border border-border">
+            <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                <Icon className="h-4 w-4" />
+                <span className="text-xs font-medium uppercase tracking-wider">{label}</span>
+            </div>
+            <div className="font-bold text-lg">{value}</div>
+            <div className="text-xs text-muted-foreground">{subValue}</div>
+        </div>
+    );
+}
+
+function Badge({ icon, label, color }: { icon: React.ReactNode, label: string, color: 'primary' | 'secondary' | 'accent' }) {
+    const colors = {
+        primary: "bg-primary/10 text-primary border-primary/20",
+        secondary: "bg-secondary text-muted-foreground border-border",
+        accent: "bg-accent/10 text-accent border-accent/20",
+    };
+
+    return (
+        <div className={cn("inline-flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-sm border", colors[color])}>
+            {icon}
+            {label}
         </div>
     );
 }
