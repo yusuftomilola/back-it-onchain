@@ -2,13 +2,32 @@
 
 import { AppLayout } from "@/components/AppLayout";
 import { User, MapPin, Calendar, Link as LinkIcon, Settings, TrendingUp, Clock, ShieldCheck, MessageSquare } from 'lucide-react';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useGlobalState } from "@/components/GlobalState";
+
+import { CallCard } from "@/components/CallCard";
 
 export default function ProfilePage() {
     const { currentUser, calls } = useGlobalState();
     const [activeTab, setActiveTab] = useState<'created' | 'staked'>('created');
+    const [socialStats, setSocialStats] = useState({ followersCount: 0, followingCount: 0 });
+
+    useEffect(() => {
+        const fetchSocialStats = async () => {
+            if (!currentUser?.wallet) return;
+            try {
+                const res = await fetch(`http://localhost:3000/users/${currentUser.wallet}/social`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setSocialStats(data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch social stats:", error);
+            }
+        };
+        fetchSocialStats();
+    }, [currentUser]);
 
     if (!currentUser) {
         return (
@@ -20,7 +39,7 @@ export default function ProfilePage() {
         );
     }
 
-    const myCalls = calls.filter(call => call.creator.handle === currentUser.handle);
+    const myCalls = calls.filter(call => call.creator?.wallet === currentUser.wallet);
 
     const RightSidebar = (
         <div className="space-y-6">
@@ -79,11 +98,11 @@ export default function ProfilePage() {
 
                         <div className="flex gap-4 mt-4 text-sm">
                             <div className="flex gap-1">
-                                <span className="font-bold">245</span>
+                                <span className="font-bold">{socialStats.followingCount}</span>
                                 <span className="text-muted-foreground">Following</span>
                             </div>
                             <div className="flex gap-1">
-                                <span className="font-bold">1.2k</span>
+                                <span className="font-bold">{socialStats.followersCount}</span>
                                 <span className="text-muted-foreground">Followers</span>
                             </div>
                         </div>
@@ -116,32 +135,7 @@ export default function ProfilePage() {
                         {activeTab === 'created' ? (
                             myCalls.length > 0 ? (
                                 myCalls.map((call) => (
-                                    <Link href={`/calls/${call.id}`} key={call.id} className="block group">
-                                        <div className="bg-card border border-border rounded-xl p-5 hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/5">
-                                            <div className="flex items-start justify-between mb-3">
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`h-8 w-8 rounded-full ${call.creator.avatar} flex items-center justify-center font-bold text-white text-xs`}>
-                                                        {(call.creator.name || "U").substring(0, 2).toUpperCase()}
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-bold text-sm group-hover:text-primary transition-colors">{call.creator.name || "Unknown User"}</div>
-                                                        <div className="text-xs text-muted-foreground">{call.createdAt}</div>
-                                                    </div>
-                                                </div>
-                                                <div className="px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-xs font-bold border border-green-500/20">
-                                                    {call.status === 'active' ? 'Active' : call.status}
-                                                </div>
-                                            </div>
-
-                                            <h3 className="text-lg font-bold mb-2 leading-snug">{call.title}</h3>
-
-                                            <div className="flex flex-wrap gap-3 mb-4">
-                                                <Badge icon={<TrendingUp className="h-3 w-3" />} label={`${call.asset} ➜ ${call.target}`} />
-                                                <Badge icon={<Clock className="h-3 w-3" />} label={call.deadline} />
-                                                <Badge icon={<ShieldCheck className="h-3 w-3" />} label={`Stake: ${call.stake}`} />
-                                            </div>
-                                        </div>
-                                    </Link>
+                                    <CallCard key={call.id} call={call} />
                                 ))
                             ) : (
                                 <div className="text-center py-10 text-muted-foreground">

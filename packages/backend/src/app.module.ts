@@ -10,6 +10,8 @@ import { CallsModule } from './calls/calls.module';
 import { OracleModule } from './oracle/oracle.module';
 import { IndexerModule } from './indexer/indexer.module';
 import { UsersModule } from './users/users.module';
+import { UserFollows } from './users/user-follows.entity';
+import { FeedModule } from './feed/feed.module';
 
 @Module({
   imports: [
@@ -25,7 +27,7 @@ import { UsersModule } from './users/users.module';
         username: configService.get<string>('DB_USERNAME', 'postgres'),
         password: configService.get<string>('DB_PASSWORD', 'postgres'),
         database: configService.get<string>('DB_DATABASE', 'back_it_onchain'),
-        entities: [User, Call],
+        entities: [User, Call, UserFollows],
         synchronize: true,
       }),
       inject: [ConfigService],
@@ -36,6 +38,7 @@ import { UsersModule } from './users/users.module';
     OracleModule,
     IndexerModule,
     UsersModule,
+    FeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],

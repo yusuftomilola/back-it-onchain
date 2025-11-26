@@ -6,7 +6,7 @@ But what if you could back your words — literally?
 
 Back It (Onchain) is a social platform for the new generation of market thinkers — a place where predictions, opinions, and hunches are not just noise, but signals that live on-chain.
 
-Built on Stellar, Back It lets you create or join call threads — bold statements about what you believe will happen in markets, culture, or technology.
+Built on Base, Back It lets you create or join call threads — bold statements about what you believe will happen in markets, culture, or technology.
 Each call can be backed with a small onchain stake, turning speculation into a verifiable commitment.
 Agree with someone’s call? You can co-back it.
 Disagree? Counter-back it — all transparently recorded on the blockchain.

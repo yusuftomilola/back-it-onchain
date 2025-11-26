@@ -8,7 +8,7 @@ export class CallsService {
   constructor(
     @InjectRepository(Call)
     private callsRepository: Repository<Call>,
-  ) {}
+  ) { }
 
   async create(callData: Partial<Call>): Promise<Call> {
     const call = this.callsRepository.create(callData);
@@ -16,7 +16,10 @@ export class CallsService {
   }
 
   async findAll(): Promise<Call[]> {
-    return this.callsRepository.find({ order: { createdAt: 'DESC' } });
+    return this.callsRepository.find({
+      order: { createdAt: 'DESC' },
+      relations: ['creator']
+    });
   }
 
   async findOne(id: number): Promise<Call | null> {
