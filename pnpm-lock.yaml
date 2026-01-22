@@ -121,6 +121,8 @@ importers:
         specifier: ^8.20.0
         version: 8.51.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
 
+  packages/contracts: {}
+
   packages/frontend:
     dependencies:
       '@coinbase/onchainkit':
