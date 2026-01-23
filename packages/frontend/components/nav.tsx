@@ -2,112 +2,138 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, PlusSquare, Bell, User, LogOut } from 'lucide-react';
+import { Home, Search, PlusSquare, Bell, User, LogOut } from "lucide-react";
 import { Logo } from "@/components/logo";
+import { ChainSelector } from "@/components/ChainSelector";
+import { useGlobalState } from "@/components/GlobalState";
 import { cn } from "@/lib/utils";
 import {
-    Wallet,
-    ConnectWallet,
-    WalletDropdown,
-    WalletDropdownDisconnect,
-    WalletDropdownLink,
-} from '@coinbase/onchainkit/wallet';
+  Wallet,
+  ConnectWallet,
+  WalletDropdown,
+  WalletDropdownDisconnect,
+  WalletDropdownLink,
+} from "@coinbase/onchainkit/wallet";
 import {
-    Address,
-    Avatar,
-    Name,
-    Identity,
-    EthBalance,
-} from '@coinbase/onchainkit/identity';
+  Address,
+  Avatar,
+  Name,
+  Identity,
+  EthBalance,
+} from "@coinbase/onchainkit/identity";
 
 export function Nav() {
-    const pathname = usePathname();
+  const { selectedChain } = useGlobalState();
+  const pathname = usePathname();
 
-    const navItems = [
-        { icon: Home, label: "Home", href: "/feed" },
-        { icon: Search, label: "Explore", href: "/explore" },
-        { icon: PlusSquare, label: "Create", href: "/create" },
-        { icon: Bell, label: "Activity", href: "/activity" },
-        { icon: User, label: "Profile", href: "/profile" },
-    ];
+  const navItems = [
+    { icon: Home, label: "Home", href: "/feed" },
+    { icon: Search, label: "Explore", href: "/explore" },
+    { icon: PlusSquare, label: "Create", href: "/create" },
+    { icon: Bell, label: "Activity", href: "/activity" },
+    { icon: User, label: "Profile", href: "/profile" },
+  ];
 
-    return (
-        <>
-            {/* Desktop Sidebar */}
-            <nav className="hidden md:flex sticky top-0 h-screen w-64 border-r border-border flex-col p-4 bg-background z-50 flex-shrink-0">
-                <div className="mb-8 px-2">
-                    <Logo />
-                </div>
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <nav className="hidden md:flex sticky top-0 h-screen w-64 border-r border-border flex-col p-4 bg-background z-50 flex-shrink-0">
+        <div className="mb-8 px-2">
+          <Logo />
+        </div>
 
-                <div className="flex-1 space-y-2">
-                    {navItems.map((item) => {
-                        const isActive = pathname === item.href;
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={cn(
-                                    "flex items-center gap-3 px-4 py-3 rounded-xl transition-colors",
-                                    isActive
-                                        ? "bg-primary/10 text-primary font-bold"
-                                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                                )}
-                            >
-                                <item.icon className={cn("h-6 w-6", isActive && "fill-current")} />
-                                <span className="text-lg">{item.label}</span>
-                            </Link>
-                        );
-                    })}
-                </div>
+        <div className="flex-1 space-y-2">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-colors",
+                  isActive
+                    ? "bg-primary/10 text-primary font-bold"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                )}
+              >
+                <item.icon
+                  className={cn("h-6 w-6", isActive && "fill-current")}
+                />
+                <span className="text-lg">{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
 
-                <div className="mt-auto pt-4 border-t border-border">
-                    <Wallet>
-                        <ConnectWallet className="w-full bg-secondary hover:bg-secondary/80 text-foreground">
-                            <Avatar className="h-6 w-6" />
-                            <Name />
-                        </ConnectWallet>
-                        <WalletDropdown>
-                            <Identity className="px-4 pt-3 pb-2" hasCopyAddressOnClick>
-                                <Avatar />
-                                <Name />
-                                <Address />
-                                <EthBalance />
-                            </Identity>
-                            <WalletDropdownLink
-                                icon="link"
-                                href="https://wallet.coinbase.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                Wallet Settings
-                            </WalletDropdownLink>
-                            <WalletDropdownDisconnect />
-                        </WalletDropdown>
-                    </Wallet>
-                </div>
-            </nav>
+        <div className="mt-auto pt-4 border-t border-border space-y-4">
+          <div className="flex justify-center">
+            <ChainSelector />
+          </div>
+          {selectedChain === "base" ? (
+            <Wallet>
+              <ConnectWallet className="w-full bg-secondary hover:bg-secondary/80 text-foreground">
+                <Avatar className="h-6 w-6" />
+                <Name />
+              </ConnectWallet>
+              <WalletDropdown>
+                <Identity className="px-4 pt-3 pb-2" hasCopyAddressOnClick>
+                  <Avatar />
+                  <Name />
+                  <Address />
+                  <EthBalance />
+                </Identity>
+                <WalletDropdownLink
+                  icon="link"
+                  href="https://wallet.coinbase.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Wallet Settings
+                </WalletDropdownLink>
+                <WalletDropdownDisconnect />
+              </WalletDropdown>
+            </Wallet>
+          ) : (
+            <button
+              onClick={() => alert("Stellar Wallet Connection Coming Soon!")}
+              className="w-full py-3 px-4 rounded-xl bg-white text-black font-bold flex items-center justify-center gap-2 hover:bg-gray-800 transition-all"
+            >
+              <img src="/icons/stellar.svg" alt="Stellar" className="w-5 h-5" />
+              Connect Stellar
+            </button>
+          )}
+        </div>
+      </nav>
 
-            {/* Mobile Bottom Nav */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border bg-background/80 backdrop-blur-lg p-2 z-50 flex justify-around items-center">
-                {navItems.map((item) => {
-                    const isActive = pathname === item.href;
-                    return (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={cn(
-                                "p-3 rounded-xl transition-colors flex flex-col items-center gap-1",
-                                isActive
-                                    ? "text-primary"
-                                    : "text-muted-foreground hover:bg-secondary/50"
-                            )}
-                        >
-                            <item.icon className={cn("h-6 w-6", isActive && "fill-current")} />
-                            <span className="text-[10px] font-medium">{item.label}</span>
-                        </Link>
-                    );
-                })}
-            </nav>
-        </>
-    );
+      {/* Mobile Top Bar */}
+      <div className="md:hidden fixed top-0 left-0 right-0 border-b border-border bg-background/80 backdrop-blur-lg p-4 z-50 flex justify-between items-center">
+        <Logo />
+        <ChainSelector />
+      </div>
+
+      {/* Mobile Bottom Nav */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border bg-background/80 backdrop-blur-lg p-2 z-50 flex justify-around items-center">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "p-3 rounded-xl transition-colors flex flex-col items-center gap-1",
+                isActive
+                  ? "text-primary"
+                  : "text-muted-foreground hover:bg-secondary/50",
+              )}
+            >
+              <item.icon
+                className={cn("h-6 w-6", isActive && "fill-current")}
+              />
+              <span className="text-[10px] font-medium">{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+    </>
+  );
 }
