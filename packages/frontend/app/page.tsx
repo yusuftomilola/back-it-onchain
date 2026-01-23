@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, TrendingUp, ShieldCheck, Users } from "lucide-react";
 import { Logo } from "@/components/logo";
+import { ChainSelector } from "@/components/ChainSelector";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
 
 export default function LandingPage() {
@@ -10,6 +11,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Logo />
           <div className="flex items-center gap-4">
+            <ChainSelector />
             <Link
               href="/feed"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
