@@ -5,11 +5,13 @@ import { User, MapPin, Calendar, Link as LinkIcon, Settings, TrendingUp, Clock, 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useGlobalState } from "@/components/GlobalState";
+import { useChain } from "@/components/ChainProvider";
 
 import { CallCard } from "@/components/CallCard";
 
 export default function ProfilePage() {
     const { currentUser, calls } = useGlobalState();
+    const { selectedChain } = useChain();
     const [activeTab, setActiveTab] = useState<'created' | 'staked'>('created');
     const [socialStats, setSocialStats] = useState({ followersCount: 0, followingCount: 0 });
 
@@ -84,7 +86,7 @@ export default function ProfilePage() {
                         <div className="flex flex-wrap gap-4 mt-4 text-xs text-muted-foreground">
                             <div className="flex items-center gap-1">
                                 <MapPin className="h-3 w-3" />
-                                Base Sepolia
+                                {selectedChain === 'stellar' ? 'Stellar' : 'Base Sepolia'}
                             </div>
                             <div className="flex items-center gap-1">
                                 <LinkIcon className="h-3 w-3" />

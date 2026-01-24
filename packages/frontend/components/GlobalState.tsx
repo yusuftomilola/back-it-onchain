@@ -1,14 +1,11 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import {
-  useWriteContract,
-  usePublicClient,
-  useAccount,
-  useDisconnect,
-} from "wagmi";
-import { parseEther, stringToHex } from "viem";
-import { CallRegistryABI, ERC20ABI } from "../lib/abis";
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useWriteContract, usePublicClient, useAccount } from 'wagmi';
+import { parseEther, stringToHex } from 'viem';
+import { CallRegistryABI, ERC20ABI } from '../lib/abis';
+import { useChain } from './ChainProvider';
+import { useStellarWallet } from './StellarWalletProvider';
 
 export interface Call {
   id: string; // callOnchainId
@@ -42,58 +39,35 @@ export interface User {
 }
 
 interface GlobalStateContextType {
-  calls: Call[];
-  createCall: (
-    call: Omit<
-      Call,
-      | "id"
-      | "creator"
-      | "status"
-      | "createdAt"
-      | "backers"
-      | "comments"
-      | "volume"
-      | "stakeToken"
-      | "totalStakeYes"
-      | "totalStakeNo"
-      | "endTs"
-    >,
-  ) => Promise<void>;
-  stakeOnCall: (
-    callId: string,
-    amount: number,
-    type: "back" | "challenge",
-  ) => Promise<void>;
-  currentUser: User | null;
-  isLoading: boolean;
-  login: () => Promise<void>;
-  updateProfile: (data: { handle: string; bio: string }) => Promise<void>;
-  selectedChain: "base" | "stellar";
-  setSelectedChain: (chain: "base" | "stellar") => void;
+    calls: Call[];
+    createCall: (call: Omit<Call, 'id' | 'creator' | 'status' | 'createdAt' | 'backers' | 'comments' | 'volume' | 'totalStakeYes' | 'totalStakeNo' | 'stakeToken' | 'endTs' | 'conditionJson'>) => Promise<void>;
+    stakeOnCall: (callId: string, amount: number, type: 'back' | 'challenge') => Promise<void>;
+    currentUser: User | null;
+    isLoading: boolean;
+    login: () => Promise<void>;
+    updateProfile: (data: { handle: string; bio: string }) => Promise<void>;
 }
 
 const GlobalStateContext = createContext<GlobalStateContextType | undefined>(
   undefined,
 );
 
-const INITIAL_CALLS: Call[] = [];
+export function GlobalStateProvider({ children }: { children: React.ReactNode }) {
+    const [calls, setCalls] = useState<Call[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-export function GlobalStateProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [calls, setCalls] = useState<Call[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [selectedChain, setSelectedChainState] = useState<"base" | "stellar">(
-    "base",
-  );
+    const { writeContractAsync } = useWriteContract();
+    const publicClient = usePublicClient();
+    const { address: evmAddress, isConnected: isEvmConnected } = useAccount();
 
-  const { writeContractAsync } = useWriteContract();
-  const publicClient = usePublicClient();
-  const { address, isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
+    // Multi-chain support
+    const { selectedChain } = useChain();
+    const { publicKey: stellarAddress, isConnected: isStellarConnected } = useStellarWallet();
+
+    // Determine active wallet based on selected chain
+    const address = selectedChain === 'stellar' ? stellarAddress : evmAddress;
+    const isConnected = selectedChain === 'stellar' ? isStellarConnected : isEvmConnected;
 
   useEffect(() => {
     const storedChain = localStorage.getItem("selectedChain");
@@ -116,36 +90,26 @@ export function GlobalStateProvider({
       if (!res.ok) throw new Error("Failed to fetch calls");
       const data = await res.json();
 
-      // Map backend calls to frontend format
-      const mappedCalls: Call[] = data.map((c: any) => ({
-        id: c.callOnchainId || c.id.toString(),
-        title: c.conditionJson?.title || "Call #" + (c.callOnchainId || c.id),
-        thesis:
-          c.conditionJson?.thesis || "Thesis for " + (c.pairId || "this call"),
-        asset: c.pairId
-          ? Buffer.from(c.pairId.replace("0x", ""), "hex")
-              .toString()
-              .replace(/\0/g, "")
-          : "Unknown",
-        target: c.conditionJson?.target || "TBD",
-        deadline: new Date(c.endTs).toLocaleDateString(),
-        stake: `${c.totalStakeYes} ${c.stakeToken}`,
-        creator: c.creator || {
-          wallet: c.creatorWallet,
-          handle: c.creatorWallet.slice(0, 6),
-        },
-        status: c.status || "active",
-        createdAt: c.createdAt,
-        backers: 0,
-        comments: 0,
-        volume: `$${(Number(c.totalStakeYes || 0) + Number(c.totalStakeNo || 0)).toLocaleString()}`,
-        totalStakeYes: Number(c.totalStakeYes || 0),
-        totalStakeNo: Number(c.totalStakeNo || 0),
-        stakeToken: c.stakeToken || "USDC",
-        endTs: c.endTs,
-        conditionJson: c.conditionJson,
-        chain: "base", // Defaulting to base for now as backend doesn't support stellar yet
-      }));
+    const login = async () => {
+        if (!address) return;
+        setIsLoading(true);
+        try {
+            const res = await fetch('http://localhost:3001/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    wallet: address,
+                    chain: selectedChain,
+                }),
+            });
+            const user = await res.json();
+            setCurrentUser(user);
+        } catch (error) {
+            console.error("Login failed:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
       setCalls(mappedCalls);
     } catch (error) {
@@ -171,29 +135,22 @@ export function GlobalStateProvider({
     }
   };
 
-  const updateProfile = async (data: { handle: string; bio: string }) => {
-    if (!currentUser || !address) return;
-    setIsLoading(true);
-    try {
-      const res = await fetch(`http://localhost:3001/users/${address}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error("Failed to update profile");
-      const updatedUser = await res.json();
-      setCurrentUser(updatedUser);
-    } catch (error) {
-      console.error("Update profile failed:", error);
-      alert("Failed to update profile. Handle might be taken.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    useEffect(() => {
+        if (isConnected && address) {
+            login();
+        }
+    }, [isConnected, address, selectedChain]);
 
-  useEffect(() => {
-    fetchCalls();
-  }, []);
+    const createCall = async (newCallData: Omit<Call, 'id' | 'creator' | 'status' | 'createdAt' | 'backers' | 'comments' | 'volume' | 'totalStakeYes' | 'totalStakeNo' | 'stakeToken' | 'endTs' | 'conditionJson'>) => {
+        if (!currentUser) {
+            alert("Please connect wallet first");
+            return;
+        }
+        setIsLoading(true);
+        try {
+            const stakeAmount = parseEther(newCallData.stake.split(' ')[0]); // Assuming "100 USDC" format
+            const tokenAddress = process.env.NEXT_PUBLIC_MOCK_TOKEN_ADDRESS as `0x${string}`;
+            const registryAddress = process.env.NEXT_PUBLIC_CALL_REGISTRY_ADDRESS as `0x${string}`;
 
   useEffect(() => {
     if (isConnected && address) {

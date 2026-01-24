@@ -7,7 +7,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAccount } from "wagmi";
 import { ChevronDown, LogOut } from "lucide-react";
 import {
@@ -19,11 +19,7 @@ import {
 import { Address, Avatar, Name, Identity } from "@coinbase/onchainkit/identity";
 // import { color } from "@coinbase/onchainkit/theme";
 import { useStellarWallet } from "@/components/StellarWalletProvider";
-
-/**
- * Supported chains
- */
-type Chain = "base" | "stellar";
+import { useChain, type Chain } from "@/components/ChainProvider";
 
 /**
  * Format wallet address for display
@@ -44,7 +40,7 @@ function formatAddress(address: string): string {
  * - Disconnect functionality
  */
 export function WalletConnectButton() {
-  const [selectedChain, setSelectedChain] = useState<Chain>("base");
+  const { selectedChain, setSelectedChain } = useChain();
   const [isChainMenuOpen, setIsChainMenuOpen] = useState(false);
   const [isWalletMenuOpen, setIsWalletMenuOpen] = useState(false);
 
@@ -113,8 +109,8 @@ export function WalletConnectButton() {
   /**
    * Handle chain switching
    */
-  const handleChainSwitch = (chain: Chain) => {
-    setSelectedChain(chain);
+  const handleChainSwitch = (newChain: Chain) => {
+    setSelectedChain(newChain);
     setIsChainMenuOpen(false);
   };
 

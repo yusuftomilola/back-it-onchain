@@ -3,41 +3,55 @@
 import { cn } from "@/lib/utils";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { useRouter } from 'next/navigation';
-import { Wallet, User, CheckCircle2, ArrowRight, Loader2 } from 'lucide-react';
+import { User, CheckCircle2, ArrowRight, Loader2 } from 'lucide-react';
 import { Logo } from "@/components/logo";
 import {
     ConnectWallet,
     Wallet as OnchainKitWallet,
-    WalletDropdown,
-    WalletDropdownDisconnect,
-    WalletDropdownLink,
 } from '@coinbase/onchainkit/wallet';
 import {
-    Address,
     Avatar,
     Name,
-    Identity,
-    EthBalance,
 } from '@coinbase/onchainkit/identity';
 import { useAccount } from 'wagmi';
 import { useGlobalState } from "@/components/GlobalState";
+import { useChain } from "@/components/ChainProvider";
+import { useStellarWallet } from "@/components/StellarWalletProvider";
 
 export default function OnboardingPage() {
     const [step, setStep] = useState(1);
     const router = useRouter();
-    const { isConnected } = useAccount();
     const { updateProfile, isLoading, currentUser } = useGlobalState();
+
+    // Chain selection
+    const { selectedChain, setSelectedChain } = useChain();
+
+    // EVM wallet (Base)
+    const { isConnected: isEvmConnected } = useAccount();
+
+    // Stellar wallet (Freighter)
+    const {
+        isConnected: isStellarConnected,
+        isFreighterInstalled,
+        connect: connectStellar,
+        isConnecting: isStellarConnecting,
+        publicKey: stellarAddress,
+    } = useStellarWallet();
+
+    // Determine if wallet is connected based on selected chain
+    const isWalletConnected = selectedChain === 'stellar' ? isStellarConnected : isEvmConnected;
 
     const [username, setUsername] = useState("");
     const [bio, setBio] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Auto-advance step when wallet connects
-    if (step === 1 && isConnected) {
-        setStep(2);
-    }
+    useEffect(() => {
+        if (step === 1 && isWalletConnected) {
+            setStep(2);
+        }
+    }, [step, isWalletConnected]);
 
     // Redirect if user already has a handle
     useEffect(() => {
@@ -91,13 +105,92 @@ export default function OnboardingPage() {
                                 <p className="text-muted-foreground">Link your wallet to start making onchain calls.</p>
                             </div>
 
-                            <div className="flex justify-center">
-                                <OnchainKitWallet>
-                                    <ConnectWallet className="w-full">
-                                        <Avatar className="h-6 w-6" />
-                                        <Name />
-                                    </ConnectWallet>
-                                </OnchainKitWallet>
+                            {/* Chain Selector */}
+                            <div className="flex justify-center gap-3">
+                                <button
+                                    onClick={() => setSelectedChain('base')}
+                                    className={cn(
+                                        "flex items-center gap-2 px-4 py-3 rounded-xl border transition-all",
+                                        selectedChain === 'base'
+                                            ? "border-primary bg-primary/10 text-primary"
+                                            : "border-border hover:border-primary/50"
+                                    )}
+                                >
+                                    <span>🔵</span>
+                                    <span className="font-medium">Base</span>
+                                </button>
+                                <button
+                                    onClick={() => setSelectedChain('stellar')}
+                                    className={cn(
+                                        "flex items-center gap-2 px-4 py-3 rounded-xl border transition-all",
+                                        selectedChain === 'stellar'
+                                            ? "border-primary bg-primary/10 text-primary"
+                                            : "border-border hover:border-primary/50"
+                                    )}
+                                >
+                                    <span>⭐</span>
+                                    <span className="font-medium">Stellar</span>
+                                </button>
+                            </div>
+
+                            {/* Wallet Connect - Chain specific */}
+                            <div className="flex flex-col items-center gap-3">
+                                {selectedChain === 'base' ? (
+                                    <OnchainKitWallet>
+                                        <ConnectWallet className="w-full">
+                                            <Avatar className="h-6 w-6" />
+                                            <Name />
+                                        </ConnectWallet>
+                                    </OnchainKitWallet>
+                                ) : (
+                                    <>
+                                        {isStellarConnected ? (
+                                            <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-secondary border border-border">
+                                                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                                                <span className="font-mono text-sm">
+                                                    {stellarAddress?.slice(0, 6)}...{stellarAddress?.slice(-4)}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={async () => {
+                                                    try {
+                                                        await connectStellar();
+                                                    } catch (error) {
+                                                        console.error("Failed to connect Stellar:", error);
+                                                        if (!isFreighterInstalled) {
+                                                            alert("Freighter wallet not installed.\n\nInstall from: https://www.freighter.app/");
+                                                        }
+                                                    }
+                                                }}
+                                                disabled={isStellarConnecting}
+                                                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-3 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                            >
+                                                {isStellarConnecting ? (
+                                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                                ) : (
+                                                    <>
+                                                        <span>⭐</span>
+                                                        Connect Freighter
+                                                    </>
+                                                )}
+                                            </button>
+                                        )}
+                                        {!isFreighterInstalled && !isStellarConnected && (
+                                            <p className="text-xs text-yellow-500">
+                                                Freighter not detected.{" "}
+                                                <a
+                                                    href="https://www.freighter.app/"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="underline hover:no-underline"
+                                                >
+                                                    Install it here
+                                                </a>
+                                            </p>
+                                        )}
+                                    </>
+                                )}
                             </div>
 
                             <p className="text-xs text-center text-muted-foreground">

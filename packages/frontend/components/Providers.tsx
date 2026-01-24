@@ -18,6 +18,7 @@ import { ReactNode, useState } from "react";
 import { GlobalStateProvider } from "./GlobalState";
 import { NetworkGuard } from "./NetworkGuard";
 import { StellarWalletProvider } from "./StellarWalletProvider";
+import { ChainProvider } from "./ChainProvider";
 
 // Local Anvil chain definition
 const localhost: Chain = {
@@ -62,20 +63,22 @@ export function Providers(props: {
   const [queryClient] = useState(() => new QueryClient());
 
   return (
-    <WagmiProvider config={config} initialState={props.initialState}>
-      <QueryClientProvider client={queryClient}>
-        <OnchainKitProvider
-          apiKey={process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY}
-          chain={activeChain}
-        >
-          <NetworkGuard>
-            <StellarWalletProvider>
-              {/* Global application state */}
-              <GlobalStateProvider>{props.children}</GlobalStateProvider>
-            </StellarWalletProvider>
-          </NetworkGuard>
-        </OnchainKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <ChainProvider>
+      <WagmiProvider config={config} initialState={props.initialState}>
+        <QueryClientProvider client={queryClient}>
+          <OnchainKitProvider
+            apiKey={process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY}
+            chain={activeChain}
+          >
+            <NetworkGuard>
+              <StellarWalletProvider>
+                {/* Global application state */}
+                <GlobalStateProvider>{props.children}</GlobalStateProvider>
+              </StellarWalletProvider>
+            </NetworkGuard>
+          </OnchainKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </ChainProvider>
   );
 }

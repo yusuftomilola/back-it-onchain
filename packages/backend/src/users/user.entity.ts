@@ -1,9 +1,14 @@
 import { Entity, Column, PrimaryColumn, CreateDateColumn } from 'typeorm';
 
+export type ChainType = 'base' | 'stellar';
+
 @Entity()
 export class User {
   @PrimaryColumn()
   wallet: string;
+
+  @Column({ type: 'varchar', default: 'base' })
+  chain: ChainType;
 
   @Column({ nullable: true })
   smartAccount: string;
