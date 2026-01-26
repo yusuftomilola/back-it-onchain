@@ -1,7 +1,10 @@
 #![cfg(test)]
 
 use super::*;
-use soroban_sdk::{testutils::{Address as _, Events, Ledger}, Address, BytesN, Env, IntoVal, String};
+use soroban_sdk::{
+    testutils::{Address as _, Events, Ledger},
+    Address, BytesN, Env, IntoVal, String,
+};
 
 #[test]
 fn test_create_call() {
@@ -57,7 +60,7 @@ fn test_create_call() {
     // Instead of asserting exact length, verify the last event is CallCreated
     let last_event = events.last().unwrap();
     assert_eq!(last_event.1.len(), 3); // Symbol, call_id, creator
-    // We can check the symbol
+                                       // We can check the symbol
     let symbol: Symbol = last_event.1.get(0).unwrap().into_val(&env);
     assert_eq!(symbol, Symbol::new(&env, "CallCreated"));
 }
@@ -115,14 +118,14 @@ fn test_stake_on_call() {
 fn test_create_call_past_end_time() {
     let env = Env::default();
     env.mock_all_auths();
-    
+
     let contract_id = env.register_contract(None, CallRegistry);
     let client = CallRegistryClient::new(&env, &contract_id);
     let creator = Address::generate(&env);
     let stake_token = Address::generate(&env);
-    
+
     let end_ts = env.ledger().timestamp(); // Current time
-    
+
     let token_address = Address::generate(&env);
     let pair_id = BytesN::from_array(&env, &[0; 32]);
     let ipfs_cid = String::from_str(&env, "QmHash");

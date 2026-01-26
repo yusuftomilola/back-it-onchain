@@ -1,5 +1,7 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, token, Address, BytesN, Env, String, Symbol};
+use soroban_sdk::{
+    contract, contractimpl, contracttype, token, Address, BytesN, Env, String, Symbol,
+};
 
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -61,8 +63,14 @@ impl CallRegistry {
         token_client.transfer(&creator, &env.current_contract_address(), &stake_amount);
 
         // Get and increment ID
-        let call_id = env.storage().instance().get(&DataKey::NextCallId).unwrap_or(0u64);
-        env.storage().instance().set(&DataKey::NextCallId, &(call_id + 1));
+        let call_id = env
+            .storage()
+            .instance()
+            .get(&DataKey::NextCallId)
+            .unwrap_or(0u64);
+        env.storage()
+            .instance()
+            .set(&DataKey::NextCallId, &(call_id + 1));
 
         let start_ts = env.ledger().timestamp();
 
@@ -82,17 +90,30 @@ impl CallRegistry {
         };
 
         // Store call
-        env.storage().persistent().set(&DataKey::Call(call_id), &call);
+        env.storage()
+            .persistent()
+            .set(&DataKey::Call(call_id), &call);
 
         // Record creator's stake (YES position)
-        env.storage().persistent().set(&DataKey::UserStake(call_id, creator.clone(), true), &stake_amount);
+        env.storage().persistent().set(
+            &DataKey::UserStake(call_id, creator.clone(), true),
+            &stake_amount,
+        );
 
         // Emit CallCreated event
         // topics: ["CallCreated", call_id, creator]
         // data: (stake_token, stake_amount, start_ts, end_ts, token_address, pair_id, ipfs_cid)
         env.events().publish(
             (Symbol::new(&env, "CallCreated"), call_id, creator),
-            (stake_token, stake_amount, start_ts, end_ts, token_address, pair_id, ipfs_cid)
+            (
+                stake_token,
+                stake_amount,
+                start_ts,
+                end_ts,
+                token_address,
+                pair_id,
+                ipfs_cid,
+            ),
         );
 
         call_id
@@ -104,17 +125,15 @@ impl CallRegistry {
     /// Transfers stake to contract
     /// Updates total_stake_yes or total_stake_no
     /// Emits StakeAdded event
-    pub fn stake_on_call(
-        env: Env,
-        call_id: u64,
-        staker: Address,
-        amount: i128,
-        position: bool,
-    ) {
+    pub fn stake_on_call(env: Env, call_id: u64, staker: Address, amount: i128, position: bool) {
         staker.require_auth();
 
         let key = DataKey::Call(call_id);
-        let mut call: Call = env.storage().persistent().get(&key).expect("Call does not exist");
+        let mut call: Call = env
+            .storage()
+            .persistent()
+            .get(&key)
+            .expect("Call does not exist");
 
         if env.ledger().timestamp() >= call.end_ts {
             panic!("Call ended");
@@ -141,23 +160,31 @@ impl CallRegistry {
         // Update user stake
         let stake_key = DataKey::UserStake(call_id, staker.clone(), position);
         let current_stake: i128 = env.storage().persistent().get(&stake_key).unwrap_or(0);
-        env.storage().persistent().set(&stake_key, &(current_stake + amount));
+        env.storage()
+            .persistent()
+            .set(&stake_key, &(current_stake + amount));
 
         // Emit StakeAdded event
         // topics: ["StakeAdded", call_id, staker]
         // data: (position, amount)
         env.events().publish(
             (Symbol::new(&env, "StakeAdded"), call_id, staker),
-            (position, amount)
+            (position, amount),
         );
     }
 
     pub fn get_call(env: Env, call_id: u64) -> Call {
-        env.storage().persistent().get(&DataKey::Call(call_id)).expect("Call does not exist")
+        env.storage()
+            .persistent()
+            .get(&DataKey::Call(call_id))
+            .expect("Call does not exist")
     }
 
     pub fn get_user_stake(env: Env, call_id: u64, user: Address, position: bool) -> i128 {
-        env.storage().persistent().get(&DataKey::UserStake(call_id, user, position)).unwrap_or(0)
+        env.storage()
+            .persistent()
+            .get(&DataKey::UserStake(call_id, user, position))
+            .unwrap_or(0)
     }
 }
 
