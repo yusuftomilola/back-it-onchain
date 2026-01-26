@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 // Minimal Paymaster interface for MVP
 contract Paymaster is Ownable {
@@ -11,7 +11,11 @@ contract Paymaster is Ownable {
         // UserOperation calldata userOp,
         // bytes32 userOpHash,
         // uint256 maxCost
-    ) external view returns (bytes memory context, uint256 validationData) {
+    )
+        external
+        pure
+        returns (bytes memory context, uint256 validationData)
+    {
         // Allow everything for MVP
         return ("", 0);
     }

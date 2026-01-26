@@ -6,8 +6,8 @@ import { Call } from '../calls/call.entity';
 import { UserFollows } from '../users/user-follows.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Call, UserFollows])],
-    providers: [FeedService],
-    controllers: [FeedController],
+  imports: [TypeOrmModule.forFeature([Call, UserFollows])],
+  providers: [FeedService],
+  controllers: [FeedController],
 })
-export class FeedModule { }
+export class FeedModule {}

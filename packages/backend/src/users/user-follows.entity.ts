@@ -1,19 +1,26 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Unique, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  Unique,
+  Index,
+} from 'typeorm';
 
 @Entity('user_follows')
 @Unique(['followerWallet', 'followingWallet'])
 @Index(['followerWallet'])
 @Index(['followingWallet'])
 export class UserFollows {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    followerWallet: string;
+  @Column()
+  followerWallet: string;
 
-    @Column()
-    followingWallet: string;
+  @Column()
+  followingWallet: string;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @CreateDateColumn()
+  createdAt: Date;
 }

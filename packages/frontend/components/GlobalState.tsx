@@ -25,6 +25,7 @@ export interface Call {
   totalStakeNo: number;
   stakeToken: string;
   endTs: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   conditionJson?: any;
   chain?: "base" | "stellar";
 }
@@ -73,7 +74,8 @@ export function GlobalStateProvider({ children }: { children: React.ReactNode })
       if (!res.ok) throw new Error("Failed to fetch calls");
       const data = await res.json();
 
-      // Map backend data to Call interface
+      // map backend data to Call interface
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mappedCalls: Call[] = data.map((item: any) => ({
         id: item.callOnchainId || item.id,
         ...item
@@ -135,6 +137,7 @@ export function GlobalStateProvider({ children }: { children: React.ReactNode })
     if (isConnected && address) {
       login();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected, address, selectedChain]);
 
   useEffect(() => {

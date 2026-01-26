@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Home, Search, PlusSquare, Bell, User, LogOut } from "lucide-react";
+import { Home, Search, PlusSquare, Bell, User } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { ChainSelector } from "@/components/ChainSelector";
-import { useGlobalState } from "@/components/GlobalState";
 import { useChain } from "@/components/ChainProvider";
 
 import { cn } from "@/lib/utils";
@@ -101,7 +101,9 @@ export function Nav() {
               onClick={() => alert("Stellar Wallet Connection Coming Soon!")}
               className="w-full py-3 px-4 rounded-xl bg-white text-black font-bold flex items-center justify-center gap-2 hover:bg-gray-800 transition-all"
             >
-              <img src="/icons/stellar.svg" alt="Stellar" className="w-5 h-5" />
+              <div className="relative w-5 h-5">
+                <Image src="/icons/stellar.svg" alt="Stellar" fill className="object-contain" />
+              </div>
               Connect Stellar
             </button>
           )}

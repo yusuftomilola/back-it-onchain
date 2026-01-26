@@ -4,7 +4,7 @@ import { Call } from './call.entity';
 
 @Controller('calls')
 export class CallsController {
-  constructor(private readonly callsService: CallsService) { }
+  constructor(private readonly callsService: CallsService) {}
 
   @Post()
   create(@Body() createCallDto: Partial<Call>) {

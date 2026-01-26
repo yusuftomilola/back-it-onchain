@@ -1,7 +1,7 @@
 "use client";
 
 import { AppLayout } from "@/components/AppLayout";
-import { User, MapPin, Calendar, Link as LinkIcon, Settings, TrendingUp, Clock, ShieldCheck, MessageSquare } from 'lucide-react';
+import { User, MapPin, Calendar, Link as LinkIcon, Settings } from 'lucide-react';
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useGlobalState } from "@/components/GlobalState";
@@ -162,11 +162,11 @@ export default function ProfilePage() {
     );
 }
 
-function Badge({ icon, label }: { icon: React.ReactNode, label: string }) {
-    return (
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-secondary/50 text-xs font-medium text-muted-foreground border border-border">
-            {icon}
-            {label}
-        </div>
-    );
-}
+// function Badge({ icon, label }: { icon: React.ReactNode, label: string }) {
+//     return (
+//         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-secondary/50 text-xs font-medium text-muted-foreground border border-border">
+//             {icon}
+//             {label}
+//         </div>
+//     );
+// }

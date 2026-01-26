@@ -259,7 +259,7 @@ export default function OnboardingPage() {
                             </div>
 
                             <div>
-                                <h2 className="text-2xl font-bold mb-2">You're All Set!</h2>
+                                <h2 className="text-2xl font-bold mb-2">You&apos;re All Set!</h2>
                                 <p className="text-muted-foreground">Your wallet is connected and profile is ready. Start exploring calls or make your first prediction.</p>
                             </div>
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { formatEther } from 'viem';
 import { CallCard } from './CallCard';
 
 type ChainFilter = 'all' | 'base' | 'stellar';
@@ -18,7 +17,9 @@ interface Call {
     stakeToken?: string;
     totalStakeYes?: number;
     totalStakeNo?: number;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     conditionJson?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     creator?: any;
     createdAt?: string;
 }
@@ -64,7 +65,7 @@ export function Feed() {
                         },
                     ]);
                 }
-            } catch (error) {
+            } catch {
                 // Fallback to mock data on error
                 setCalls([
                     {
@@ -103,32 +104,29 @@ export function Feed() {
             <div className="flex gap-2 mb-4">
                 <button
                     onClick={() => setChainFilter('all')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        chainFilter === 'all'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                    }`}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${chainFilter === 'all'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                        }`}
                 >
                     All Chains
                 </button>
                 <button
                     onClick={() => setChainFilter('base')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                        chainFilter === 'base'
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border border-blue-500/20'
-                    }`}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${chainFilter === 'base'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border border-blue-500/20'
+                        }`}
                 >
                     <div className="w-2 h-2 rounded-full bg-current" />
                     Base
                 </button>
                 <button
                     onClick={() => setChainFilter('stellar')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                        chainFilter === 'stellar'
-                            ? 'bg-purple-500 text-white'
-                            : 'bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border border-purple-500/20'
-                    }`}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${chainFilter === 'stellar'
+                        ? 'bg-purple-500 text-white'
+                        : 'bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border border-purple-500/20'
+                        }`}
                 >
                     <div className="w-2 h-2 rounded-full bg-current" />
                     Stellar

@@ -1,7 +1,6 @@
 #![no_std]
 use soroban_sdk::{
-    contract, contractimpl, contracttype, symbol_short, Address, Bytes, BytesN,
-    Env, Symbol, Map,
+    contract, contractimpl, contracttype, symbol_short, Address, Bytes, BytesN, Env, Map, Symbol,
 };
 
 const OWNER: Symbol = symbol_short!("OWNER");
@@ -88,11 +87,9 @@ impl OutcomeManagerContract {
     /// Check if an oracle is authorized
     pub fn is_authorized_oracle(env: Env, oracle: BytesN<32>) -> bool {
         let storage = env.storage().instance();
-        let oracles: Map<BytesN<32>, bool> = storage.get(&ORACLES).unwrap_or_else(|| Map::new(&env));
-        oracles
-            .get(oracle)
-            .map(|v| v)
-            .unwrap_or_else(|| false)
+        let oracles: Map<BytesN<32>, bool> =
+            storage.get(&ORACLES).unwrap_or_else(|| Map::new(&env));
+        oracles.get(oracle).map(|v| v).unwrap_or_else(|| false)
     }
 
     /// Submit outcome with ed25519 signature verification
@@ -109,7 +106,7 @@ impl OutcomeManagerContract {
 
         // Verify call hasn't been settled
         let mut calls: Map<u64, CallData> = storage.get(&CALLS).unwrap_or_else(|| Map::new(&env));
-        
+
         if let Some(call_data) = calls.get(call_id) {
             if call_data.settled {
                 panic!("Call already settled");
@@ -121,7 +118,7 @@ impl OutcomeManagerContract {
         // Construct message for signature verification
         // Format: call_id (8 bytes) + outcome (1 byte) + final_price (16 bytes) + timestamp (8 bytes)
         let mut message = Bytes::new(&env);
-        
+
         // Add call_id (u64 big-endian)
         message.push_back((call_id >> 56) as u8);
         message.push_back(((call_id >> 48) & 0xFF) as u8);
@@ -155,7 +152,8 @@ impl OutcomeManagerContract {
             .ed25519_verify(&oracle_pubkey, &message, &signature);
 
         // Verify signer is an authorized oracle
-        let oracles: Map<BytesN<32>, bool> = storage.get(&ORACLES).unwrap_or_else(|| Map::new(&env));
+        let oracles: Map<BytesN<32>, bool> =
+            storage.get(&ORACLES).unwrap_or_else(|| Map::new(&env));
         let is_authorized = oracles
             .get(oracle_pubkey.clone())
             .map(|v| v)
@@ -176,12 +174,7 @@ impl OutcomeManagerContract {
         // Emit event
         env.events().publish(
             (Symbol::new(&env, "outcome_submitted"),),
-            Event::OutcomeSubmitted(
-                call_id,
-                outcome,
-                final_price,
-                oracle_pubkey,
-            ),
+            Event::OutcomeSubmitted(call_id, outcome, final_price, oracle_pubkey),
         );
 
         true
@@ -215,15 +208,20 @@ impl OutcomeManagerContract {
     }
 
     /// Withdraw payout for a settled call
-    pub fn withdraw_payout(env: Env, call_id: u64, user: Address, user_stake: u128, user_side: bool) -> u128 {
+    pub fn withdraw_payout(
+        env: Env,
+        call_id: u64,
+        user: Address,
+        user_stake: u128,
+        user_side: bool,
+    ) -> u128 {
         let storage = env.storage().instance();
         user.require_auth();
 
         // Check if user already withdrew
-        let withdrawals: Map<(u64, Address), bool> = storage
-            .get(&WITHDRAWALS)
-            .unwrap_or_else(|| Map::new(&env));
-        
+        let withdrawals: Map<(u64, Address), bool> =
+            storage.get(&WITHDRAWALS).unwrap_or_else(|| Map::new(&env));
+
         if let Some(withdrawn) = withdrawals.get((call_id, user.clone())) {
             if withdrawn {
                 panic!("Already withdrawn");
@@ -231,7 +229,7 @@ impl OutcomeManagerContract {
         }
 
         // Get call data
-        let mut calls: Map<u64, CallData> = storage.get(&CALLS).unwrap_or_else(|| Map::new(&env));
+        let calls: Map<u64, CallData> = storage.get(&CALLS).unwrap_or_else(|| Map::new(&env));
         let call_data = calls
             .get(call_id)
             .unwrap_or_else(|| panic!("Call not found"));
@@ -290,10 +288,9 @@ impl OutcomeManagerContract {
     /// Check if user already withdrew from a call
     pub fn has_withdrawn(env: Env, call_id: u64, user: Address) -> bool {
         let storage = env.storage().instance();
-        let withdrawals: Map<(u64, Address), bool> = storage
-            .get(&WITHDRAWALS)
-            .unwrap_or_else(|| Map::new(&env));
-        
+        let withdrawals: Map<(u64, Address), bool> =
+            storage.get(&WITHDRAWALS).unwrap_or_else(|| Map::new(&env));
+
         withdrawals
             .get((call_id, user))
             .map(|v| v)

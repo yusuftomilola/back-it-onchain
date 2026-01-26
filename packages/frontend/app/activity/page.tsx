@@ -1,7 +1,7 @@
 "use client";
 
 import { AppLayout } from "@/components/AppLayout";
-import { Bell, UserPlus, Heart, MessageSquare, TrendingUp } from 'lucide-react';
+import { UserPlus, Heart, MessageSquare, TrendingUp } from 'lucide-react';
 
 export default function ActivityPage() {
     const RightSidebar = (

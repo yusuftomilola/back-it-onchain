@@ -1,6 +1,5 @@
 "use client";
 
-import { useGlobalState } from "./GlobalState";
 import { useChain } from "./ChainProvider";
 
 import { ChevronDown } from "lucide-react";
@@ -40,8 +39,8 @@ export function ChainSelector() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`select-none flex items-center gap-6 px-3 py-2 rounded-full border transition-all duration-300 backdrop-blur-md ${selectedChain === "base"
-            ? "bg-white/80 border-blue-500/20 text-blue-600 hover:bg-white/60"
-            : "bg-white/50 border-gray-200 text-gray-900 hover:bg-white/80"
+          ? "bg-white/80 border-blue-500/20 text-blue-600 hover:bg-white/60"
+          : "bg-white/50 border-gray-200 text-gray-900 hover:bg-white/80"
           }`}
       >
         <Image
@@ -70,8 +69,8 @@ export function ChainSelector() {
                   setIsOpen(false);
                 }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${selectedChain === chain.id
-                    ? "bg-gray-100 font-bold text-gray-900"
-                    : "hover:bg-gray-50 font-medium text-gray-700 hover:text-gray-900"
+                  ? "bg-gray-100 font-bold text-gray-900"
+                  : "hover:bg-gray-50 font-medium text-gray-700 hover:text-gray-900"
                   }`}
               >
                 <Image

@@ -33,10 +33,6 @@ export default function CreatePage() {
         router.push('/feed');
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setFormData(prev => ({ ...prev, [e.target.type === 'date' ? 'deadline' : (e.target.placeholder?.includes('Title') ? 'title' : e.target.placeholder?.includes('Thesis') ? 'thesis' : e.target.placeholder?.includes('Asset') ? 'asset' : e.target.placeholder?.includes('Target') ? 'target' : 'stake')]: e.target.value }));
-    };
-
     // Helper to update state based on input name since I didn't add name attributes initially
     // Ideally we should add name attributes to inputs
     const handleInputChange = (name: string, value: string) => {

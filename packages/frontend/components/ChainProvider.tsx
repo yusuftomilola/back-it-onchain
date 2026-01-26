@@ -38,17 +38,21 @@ interface ChainProviderProps {
  * Persists selection to localStorage for cross-page and refresh persistence.
  */
 export function ChainProvider({ children }: ChainProviderProps) {
-  const [selectedChain, setSelectedChainState] = useState<Chain>("base");
+  // Initialize state from localStorage if available, otherwise default to "base"
+  const [selectedChain, setSelectedChainState] = useState<Chain>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored === "base" || stored === "stellar") {
+        return stored;
+      }
+    }
+    return "base";
+  });
+
   const [isChainLoaded, setIsChainLoaded] = useState(false);
 
-  // Restore chain selection from localStorage on mount
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "base" || stored === "stellar") {
-      setSelectedChainState(stored);
-    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsChainLoaded(true);
   }, []);
 

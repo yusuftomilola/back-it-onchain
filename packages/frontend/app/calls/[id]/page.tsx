@@ -162,12 +162,12 @@ export default function CallDetailPage() {
                         </div>
                     </div>
                     <h3 className="text-xl font-bold mb-2 group-hover:text-red-500 transition-colors">Counter-Back</h3>
-                    <p className="text-muted-foreground mb-4">Think this is wrong? Stake ETH against this prediction to win the creator's stake.</p>
+                    <p className="text-muted-foreground mb-4">Think this is wrong? Stake ETH against this prediction to win the creator&apos;s stake.</p>
                     <div
                         onClick={() => setStakingType('challenge')}
                         className="w-full py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-center transition-colors cursor-pointer"
                     >
-                        Back "No"
+                        Back &quot;No&quot;
                     </div>
                 </div>
             </div>
@@ -175,18 +175,18 @@ export default function CallDetailPage() {
     );
 }
 
-function StatCard({ icon: Icon, label, value, subValue }: { icon: any, label: string, value: string, subValue: string }) {
-    return (
-        <div className="bg-secondary/50 rounded-xl p-4 border border-border">
-            <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                <Icon className="h-4 w-4" />
-                <span className="text-xs font-medium uppercase tracking-wider">{label}</span>
-            </div>
-            <div className="font-bold text-lg">{value}</div>
-            <div className="text-xs text-muted-foreground">{subValue}</div>
-        </div>
-    );
-}
+// function StatCard({ icon: Icon, label, value, subValue }: { icon: any, label: string, value: string, subValue: string }) {
+//     return (
+//         <div className="bg-secondary/50 rounded-xl p-4 border border-border">
+//             <div className="flex items-center gap-2 text-muted-foreground mb-2">
+//                 <Icon className="h-4 w-4" />
+//                 <span className="text-xs font-medium uppercase tracking-wider">{label}</span>
+//             </div>
+//             <div className="font-bold text-lg">{value}</div>
+//             <div className="text-xs text-muted-foreground">{subValue}</div>
+//         </div>
+//     );
+// }
 
 function Badge({ icon, label, color }: { icon: React.ReactNode, label: string, color: 'primary' | 'secondary' | 'accent' }) {
     const colors = {

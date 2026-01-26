@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "forge-std/Test.sol";
-import "../src/CallRegistry.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {Test} from "forge-std/Test.sol";
+import {CallRegistry} from "../src/CallRegistry.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract MockERC20 is ERC20 {
     constructor() ERC20("Mock", "MCK") {
-        _mint(msg.sender, 1000000 * 10**18);
+        _mint(msg.sender, 1000000 * 10 ** 18);
     }
 }
 
@@ -20,13 +20,14 @@ contract CallRegistryTest is Test {
     function setUp() public {
         registry = new CallRegistry();
         token = new MockERC20();
-        
-        token.transfer(user1, 1000 * 10**18);
-        token.transfer(user2, 1000 * 10**18);
-        
+
+        bool success1 = token.transfer(user1, 1000 * 10 ** 18);
+        bool success2 = token.transfer(user2, 1000 * 10 ** 18);
+        require(success1 && success2, "Transfer failed");
+
         vm.prank(user1);
         token.approve(address(registry), type(uint256).max);
-        
+
         vm.prank(user2);
         token.approve(address(registry), type(uint256).max);
     }
@@ -34,7 +35,7 @@ contract CallRegistryTest is Test {
     function testCreateCall() public {
         vm.startPrank(user1);
         token.approve(address(registry), 100 ether); // Changed to `token` from `mockToken` to match declaration
-        
+
         registry.createCall(
             address(token), // Changed to `token` from `mockToken` to match declaration
             10 ether,
@@ -44,25 +45,13 @@ contract CallRegistryTest is Test {
             "QmTest"
         );
 
-        (
-            address creator,
-            address stakeToken,
-            uint256 totalStakeYes,
-            uint256 totalStakeNo,
-            ,
-            ,
-            ,
-            ,
-            ,
-            ,
-            ,
-        ) = registry.calls(0);
+        (address creator, address stakeToken, uint256 totalStakeYes, uint256 totalStakeNo,,,,,,,,) = registry.calls(0);
 
         assertEq(creator, user1);
         assertEq(stakeToken, address(token)); // Changed to `token` from `mockToken` to match declaration
         assertEq(totalStakeYes, 10 ether);
         assertEq(totalStakeNo, 0);
-        
+
         // Check user stake
         assertEq(registry.userStakes(0, user1, true), 10 ether);
         vm.stopPrank();
@@ -86,7 +75,7 @@ contract CallRegistryTest is Test {
         vm.startPrank(user2);
         token.approve(address(registry), 100 ether); // Changed to `token` from `mockToken` to match declaration
         registry.stakeOnCall(0, 5 ether, false); // false = NO
-        
+
         (,, uint256 totalStakeYes, uint256 totalStakeNo,,,,,,,,) = registry.calls(0);
         assertEq(totalStakeYes, 10 ether);
         assertEq(totalStakeNo, 5 ether);

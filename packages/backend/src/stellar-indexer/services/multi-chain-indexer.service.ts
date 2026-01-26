@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { StellarIndexerService } from './stellar-indexer.service';
 import { BaseIndexerService } from './base-indexer.service';
 
@@ -28,7 +33,7 @@ export class MultiChainIndexerService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly stellarIndexer: StellarIndexerService,
     private readonly baseIndexer: BaseIndexerService,
-  ) { }
+  ) {}
 
   async initialize(config: MultiChainIndexerConfig): Promise<void> {
     this.config = {
@@ -88,7 +93,6 @@ export class MultiChainIndexerService implements OnModuleInit, OnModuleDestroy {
 
     const startPromises: Promise<void | void[]>[] = [];
 
-
     if (this.config.enableStellar) {
       startPromises.push(
         this.stellarIndexer.start().catch((error) => {
@@ -119,7 +123,6 @@ export class MultiChainIndexerService implements OnModuleInit, OnModuleDestroy {
     this.logger.log('Stopping Multi-Chain Indexer...');
 
     const stopPromises: Promise<void | void[]>[] = [];
-
 
     if (this.config.enableStellar) {
       stopPromises.push(
@@ -155,7 +158,6 @@ export class MultiChainIndexerService implements OnModuleInit, OnModuleDestroy {
       isRunning: this.isRunning,
       stellarEnabled: !!this.config?.enableStellar,
       baseEnabled: !!this.config?.enableBase,
-
     };
   }
 }

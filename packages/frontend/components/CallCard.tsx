@@ -2,6 +2,7 @@ import Link from "next/link";
 import { TrendingUp, Clock, ShieldCheck, MessageSquare } from "lucide-react";
 
 interface CallCardProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   call: any;
 }
 

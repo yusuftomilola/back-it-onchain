@@ -6,79 +6,95 @@ import { UserFollows } from './user-follows.entity';
 
 @Injectable()
 export class UsersService {
-    constructor(
-        @InjectRepository(User)
-        private usersRepository: Repository<User>,
-        @InjectRepository(UserFollows)
-        private userFollowsRepository: Repository<UserFollows>,
-    ) { }
+  constructor(
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+    @InjectRepository(UserFollows)
+    private userFollowsRepository: Repository<UserFollows>,
+  ) {}
 
-    async findByWallet(wallet: string): Promise<User | null> {
-        return this.usersRepository.findOne({ where: { wallet } });
+  async findByWallet(wallet: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { wallet } });
+  }
+
+  async findByHandle(handle: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { handle } });
+  }
+
+  async updateProfile(
+    wallet: string,
+    updateData: {
+      handle?: string;
+      bio?: string;
+      displayName?: string;
+      avatarCid?: string;
+    },
+  ): Promise<User> {
+    const user = await this.findByWallet(wallet);
+    if (!user) {
+      throw new Error('User not found');
     }
 
-    async findByHandle(handle: string): Promise<User | null> {
-        return this.usersRepository.findOne({ where: { handle } });
+    if (updateData.handle) {
+      const existingUser = await this.findByHandle(updateData.handle);
+      if (existingUser && existingUser.wallet !== wallet) {
+        throw new ConflictException('Handle already taken');
+      }
     }
 
-    async updateProfile(wallet: string, updateData: { handle?: string; bio?: string; displayName?: string; avatarCid?: string }): Promise<User> {
-        const user = await this.findByWallet(wallet);
-        if (!user) {
-            throw new Error('User not found');
-        }
+    Object.assign(user, updateData);
+    return this.usersRepository.save(user);
+  }
 
-        if (updateData.handle) {
-            const existingUser = await this.findByHandle(updateData.handle);
-            if (existingUser && existingUser.wallet !== wallet) {
-                throw new ConflictException('Handle already taken');
-            }
-        }
-
-        Object.assign(user, updateData);
-        return this.usersRepository.save(user);
+  async follow(followerWallet: string, followingWallet: string): Promise<void> {
+    if (followerWallet === followingWallet) {
+      throw new ConflictException('Cannot follow yourself');
     }
 
-    async follow(followerWallet: string, followingWallet: string): Promise<void> {
-        if (followerWallet === followingWallet) {
-            throw new ConflictException('Cannot follow yourself');
-        }
+    const existing = await this.userFollowsRepository.findOne({
+      where: { followerWallet, followingWallet },
+    });
 
-        const existing = await this.userFollowsRepository.findOne({
-            where: { followerWallet, followingWallet }
-        });
-
-        if (existing) {
-            return; // Already following
-        }
-
-        const follow = this.userFollowsRepository.create({
-            followerWallet,
-            followingWallet
-        });
-        await this.userFollowsRepository.save(follow);
+    if (existing) {
+      return; // Already following
     }
 
-    async unfollow(followerWallet: string, followingWallet: string): Promise<void> {
-        await this.userFollowsRepository.delete({
-            followerWallet,
-            followingWallet
-        });
-    }
+    const follow = this.userFollowsRepository.create({
+      followerWallet,
+      followingWallet,
+    });
+    await this.userFollowsRepository.save(follow);
+  }
 
-    async getSocialStats(wallet: string): Promise<{ followersCount: number; followingCount: number }> {
-        const followersCount = await this.userFollowsRepository.count({
-            where: { followingWallet: wallet }
-        });
-        const followingCount = await this.userFollowsRepository.count({
-            where: { followerWallet: wallet }
-        });
-        return { followersCount, followingCount };
-    }
+  async unfollow(
+    followerWallet: string,
+    followingWallet: string,
+  ): Promise<void> {
+    await this.userFollowsRepository.delete({
+      followerWallet,
+      followingWallet,
+    });
+  }
 
-    async isFollowing(followerWallet: string, followingWallet: string): Promise<boolean> {
-        const count = await this.userFollowsRepository.count({
-            where: { followerWallet, followingWallet }
-        });
-        return count > 0;
-    }
+  async getSocialStats(
+    wallet: string,
+  ): Promise<{ followersCount: number; followingCount: number }> {
+    const followersCount = await this.userFollowsRepository.count({
+      where: { followingWallet: wallet },
+    });
+    const followingCount = await this.userFollowsRepository.count({
+      where: { followerWallet: wallet },
+    });
+    return { followersCount, followingCount };
+  }
+
+  async isFollowing(
+    followerWallet: string,
+    followingWallet: string,
+  ): Promise<boolean> {
+    const count = await this.userFollowsRepository.count({
+      where: { followerWallet, followingWallet },
+    });
+    return count > 0;
+  }
 }

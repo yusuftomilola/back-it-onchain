@@ -9,4 +9,4 @@ import { AuthModule } from '../auth/auth.module';
   imports: [ConfigModule, AuthModule, TypeOrmModule.forFeature([Call])],
   providers: [IndexerService],
 })
-export class IndexerModule { }
+export class IndexerModule {}

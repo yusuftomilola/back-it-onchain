@@ -1,8 +1,7 @@
 "use client";
 
 import { AppLayout } from "@/components/AppLayout";
-import { Search, TrendingUp, ArrowUpRight } from 'lucide-react';
-import Link from "next/link";
+import { Search, TrendingUp } from 'lucide-react';
 
 export default function ExplorePage() {
     const RightSidebar = (

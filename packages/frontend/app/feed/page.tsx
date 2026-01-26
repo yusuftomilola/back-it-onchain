@@ -1,17 +1,41 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/AppLayout";
-import { TrendingUp, Clock, ShieldCheck, MessageSquare, ArrowUpRight } from 'lucide-react';
 import { useGlobalState } from "@/components/GlobalState";
 
 import { CallCard } from "@/components/CallCard";
 
+// Define the Call interface
+interface Call {
+    id: string;
+    title: string;
+    thesis: string;
+    asset: string;
+    target: string;
+    deadline: string;
+    stake: string;
+    creator: { wallet: string; handle: string; } | string;
+    status: string;
+    createdAt: string;
+    backers: number;
+    comments: number;
+    volume: string;
+    totalStakeYes: number;
+    totalStakeNo: number;
+    stakeToken: string;
+    endTs: number;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    conditionJson?: any;
+    creatorWallet?: string; // Add creatorWallet if it's part of the raw data
+    pairId?: string; // Add pairId if it's part of the raw data
+    callOnchainId?: string; // Add callOnchainId if it's part of the raw data
+}
+
 export default function FeedPage() {
     const { currentUser } = useGlobalState();
     const [activeTab, setActiveTab] = useState<'for-you' | 'following'>('for-you');
-    const [calls, setCalls] = useState<any[]>([]);
+    const [calls, setCalls] = useState<Call[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
@@ -33,7 +57,8 @@ export default function FeedPage() {
                 const data = await res.json();
 
                 // Map backend calls to frontend format
-                const mappedCalls = data.map((c: any) => ({
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const mappedCalls: Call[] = data.map((c: any) => ({
                     id: c.callOnchainId || c.id.toString(),
                     title: c.conditionJson?.title || "Call #" + (c.callOnchainId || c.id),
                     thesis: c.conditionJson?.thesis || "Thesis for " + (c.pairId || "this call"),
@@ -127,11 +152,17 @@ export default function FeedPage() {
     );
 }
 
-function Badge({ icon, label }: { icon: React.ReactNode, label: string }) {
-    return (
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-secondary/50 text-xs font-medium text-muted-foreground border border-border">
-            {icon}
-            {label}
-        </div>
-    );
-}
+// function Badge({ icon, label, color }: { icon: React.ReactNode, label: string, color: 'primary' | 'secondary' | 'accent' }) {
+//     const colors = {
+//         primary: "bg-primary/10 text-primary border-primary/20",
+//         secondary: "bg-secondary text-muted-foreground border-border",
+//         accent: "bg-accent/10 text-accent border-accent/20",
+//     };
+
+//     return (
+//         <div className={cn("inline-flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-sm border", colors[color])}>
+//             {icon}
+//             {label}
+//         </div>
+//     );
+// }

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "forge-std/Script.sol";
-import "../src/CallRegistry.sol";
-import "../src/OutcomeManager.sol";
-import "../src/Paymaster.sol";
-import "../src/MockToken.sol";
+import {Paymaster} from "../src/Paymaster.sol";
+import {MockToken} from "../src/MockToken.sol";
+import {CallRegistry} from "../src/CallRegistry.sol";
+import {OutcomeManager} from "../src/OutcomeManager.sol";
+import {Script, console} from "forge-std/Script.sol";
 
 contract DeployScript is Script {
     function run() external {

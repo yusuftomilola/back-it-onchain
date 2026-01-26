@@ -65,7 +65,7 @@ fn test_register_call() {
     // Verify call was registered
     let call = client.get_call(&call_id);
     assert!(call.is_some());
-    
+
     let call_data = call.unwrap();
     assert_eq!(call_data.id, call_id);
     assert_eq!(call_data.long_tokens, long_tokens);

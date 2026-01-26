@@ -1,7 +1,7 @@
 'use client';
 
-import { useAccount, useSwitchChain, useChainId } from 'wagmi';
-import { useEffect, useState } from 'react';
+import { useAccount, useSwitchChain } from 'wagmi';
+import { useEffect } from 'react';
 
 // Expected chain ID for local development
 const EXPECTED_CHAIN_ID = 31337; // Anvil localhost
@@ -9,23 +9,20 @@ const EXPECTED_CHAIN_ID = 31337; // Anvil localhost
 export function NetworkGuard({ children }: { children: React.ReactNode }) {
     const { isConnected, chain } = useAccount();
     const { switchChain, isPending, error } = useSwitchChain();
-    const [showBanner, setShowBanner] = useState(false);
+    const isWrongNetwork = isConnected && chain && chain.id !== EXPECTED_CHAIN_ID;
 
+    // Auto-switch effect
     useEffect(() => {
-        if (isConnected && chain && chain.id !== EXPECTED_CHAIN_ID) {
-            setShowBanner(true);
-            // Attempt automatic switch
+        if (isWrongNetwork) {
             switchChain({ chainId: EXPECTED_CHAIN_ID });
-        } else {
-            setShowBanner(false);
         }
-    }, [isConnected, chain?.id]);
+    }, [isWrongNetwork, switchChain]);
 
     const handleSwitch = () => {
         switchChain({ chainId: EXPECTED_CHAIN_ID });
     };
 
-    if (showBanner) {
+    if (isWrongNetwork) {
         return (
             <div className="min-h-screen bg-background">
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
