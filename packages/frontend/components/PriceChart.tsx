@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { createChart, IChartApi, ISeriesApi, CandlestickData, Time, AreaData } from "lightweight-charts";
+import { createChart, IChartApi, ISeriesApi, CandlestickData, Time, AreaData, AreaSeries } from "lightweight-charts";
 import { cn } from "@/lib/utils";
 
 interface PriceChartProps {
@@ -126,8 +126,8 @@ export function PriceChart({
 
     chartRef.current = chart;
 
-    // Create area series
-    const areaSeries = chart.addAreaSeries({
+    // Create area series using addSeries with AreaSeries type
+    const areaSeries = chart.addSeries(AreaSeries, {
       lineColor: "#8b5cf6",
       topColor: "rgba(139, 92, 246, 0.4)",
       bottomColor: "rgba(139, 92, 246, 0.05)",
